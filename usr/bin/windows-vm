@@ -1,0 +1,37 @@
+#!/bin/bash
+#/usr/bin
+sudo vfio-bind 0000:04:00.0 0000:04:00.1
+#sudo vfio-bind 0000:01:00.0 0000:01:00.1
+#sudo sysctl vm.nr_hugepages=1024
+
+QEMU_PA_SAMPLES=128
+QEMU_AUDIO_DRV=pa
+#QEMU_AUDIO_DRV=alsa
+
+sudo qemu-system-x86_64 \
+-enable-kvm \
+-m 8192 \
+-no-hpet \
+-smp cores=6,sockets=1,threads=1 \
+-cpu qemu64,kvm=off \
+-usb \
+-vga none \
+-device qxl \
+-device usb-kbd \
+-device usb-mouse \
+-device usb-host,vendorid=0x045e,productid=0x0719 \
+-device usb-host,vendorid=0x050d,productid=0x016a \
+-device virtio-scsi-pci,id=scsi \
+-device vfio-pci,host=04:00.0,x-vga=on,multifunction=on \
+-device vfio-pci,host=04:00.1 \
+-device ich9-intel-hda,addr=1b.0,id=sound0 \
+-device hda-duplex,id=sound0-codec0,bus=sound0.0,cad=0 \
+-drive if=pflash,format=raw,file=/usr/share/ovmf/x64/ovmf_x64.bin \
+-drive file=/home/ryan/VirtualMachines/win10.cow,id=hdd,format=raw,if=none -device scsi-hd,drive=hdd \
+-net nic,model=rtl8139 \
+-net bridge,br=bridge0 \
+-daemonize
+#-drive file=/home/ryan/VirtualMachines/Installers/win10.iso,id=cd0,format=raw,if=none -device scsi-cd,drive=cd0 \
+#-runas ryan
+#-soundhw sb16,es1370,adlib,hda \
+#-mem-path /dev/hugepages \
